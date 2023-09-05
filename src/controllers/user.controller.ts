@@ -3,8 +3,10 @@ import AppError from '../utils/appError';
 import catchAsync from '../utils/catchAsync';
 import axios from 'axios';
 import { validateUserName } from '../utils/validation';
+import { handleRateLimitError } from '../utils/axiosUtils';
 
 const BASE_URL: string = 'https://dummy.restapiexample.com/api/v1';
+
 
 /**
  * @description Get all users
@@ -23,11 +25,16 @@ export const getAllUsers = catchAsync(async (req: Request, res: Response, next: 
         users,
       },
     });
-  } catch (error) {
-    res.status(500).json({
-      status: 'error',
-      message: "An error occurred while fetching users. Please try again.",
-    });
+  } catch (error: any) {
+    if (error.isAxiosError) {
+      // Handle rate-limiting error using the utility function
+      handleRateLimitError(error, res);
+    } else {
+      res.status(500).json({
+        status: 'error',
+        message: "An error occurred while fetching users. Please try again.",
+      });
+    }
   }
 });
 
@@ -57,11 +64,16 @@ export const getOneUser = catchAsync(async (req: Request, res: Response, next: N
         user,
       },
     });
-  } catch (error) {
-    res.status(500).json({
-      status: 'error',
-      message: "An error occurred while fetching user details. Please try again.",
-    });
+  } catch (error: any) {
+    if (error.isAxiosError) {
+      // Handle rate-limiting error using the utility function
+      handleRateLimitError(error, res);
+    } else {
+      res.status(500).json({
+        status: 'error',
+        message: "An error occurred while fetching user details. Please try again.",
+      });
+    }
   }
 });
 
@@ -91,21 +103,36 @@ export const createUser = catchAsync(async (req: Request, res: Response, next: N
   }
 
   try {
+    // console.log('Creating user...'); // Log a message indicating the start of the operation
+
     const response = await axios.post(`${BASE_URL}/create`, newUser);
     const createdUser = response.data.data;
+
+    // console.log('User created successfully:', createdUser); // Log the successful user creation with user data
+
     res.status(201).json({
       status: 'success',
       data: {
-       createdUser
+        createdUser
       },
     });
-  } catch (error) {
-    res.status(500).json({
-      status: 'false',
-      message: "An error occurred while creating the user. Please try again.", // Updated error message
-    });
+  } catch (error: any) {
+    if (error.isAxiosError) {
+      // console.error('Axios error:', error); // Log the Axios error for debugging
+
+      // Handle rate-limiting error using the utility function
+      handleRateLimitError(error, res);
+    } else {
+      // console.error('Error creating user:', error); // Log the error message and details
+
+      res.status(500).json({
+        status: 'false',
+        message: "An error occurred while creating the user. Please try again.",
+      });
+    }
   }
 });
+
 
 /**
  * @description Update a user by ID
@@ -127,23 +154,30 @@ export const updateUser = catchAsync(async (req: Request, res: Response, next: N
   }
 
   try {
-
+    // console.log('Updating user...'); // Log a message indicating the start of the operation
 
    const response = await axios.put(`${BASE_URL}/update/${userId}`, updatedUser);
    const updatedUserData = response.data.data; // Get the updated user data from the response
 
+  //  console.log('User updated successfully:', updatedUserData); // Log the successful update with updated data
 
    res.status(200).json({
      status: 'success',
      message: 'User updated successfully',
      updatedUserData
    });
-  } catch (error) {
+  } catch (error: any) {
+    if (error.isAxiosError) {
+      // Handle rate-limiting error using the utility function
+      handleRateLimitError(error, res);
+    } else {
+      // console.error('Error updating user:', error); // Log the error message and details
 
-    res.status(500).json({
-      status: 'error',
-      message: 'An error occurred while updating the user. Please try again.',
-    });
+      res.status(500).json({
+        status: 'error',
+        message: 'An error occurred while updating the user. Please try again.',
+      });
+    }
   }
 });
 
@@ -158,18 +192,24 @@ export const deleteUser = catchAsync(async (req: Request, res: Response, next: N
   const userId = req.params.id;
   try {
     await axios.delete(`${BASE_URL}/delete/${userId}`);
-
+    // console.log(`User with ID ${userId} deleted successfully.`); // Log success message
 
     res.status(200).json({
       status: 'success',
       message: "User deleted successfully"
     });
-  } catch (error) {
+  } catch (error: any) {
+    if (error.isAxiosError) {
+      // Handle rate-limiting error using the utility function
+      handleRateLimitError(error, res);
+    } else {
+      // console.error('Error deleting user:', error); // Log the error message and details
 
-    res.status(500).json({
-      status: 'error',
-      message: "An error occurred while deleting the user. Please try again.",
-    });
+      res.status(500).json({
+        status: 'error',
+        message: "An error occurred while deleting the user. Please try again.",
+      });
+    }
   }
 });
 
