@@ -45,7 +45,10 @@ export const getOneUser = catchAsync(async (req: Request, res: Response, next: N
     const user = response.data.data;
 
     if (!user) {
-      return next(new AppError('User not found', 404));
+      res.status(404).json({
+        status: 'error',
+        message: "User not found.",
+      });
     }
 
     res.status(200).json({
@@ -93,7 +96,7 @@ export const createUser = catchAsync(async (req: Request, res: Response, next: N
     res.status(201).json({
       status: 'success',
       data: {
-       response
+       createdUser
       },
     });
   } catch (error) {
@@ -124,20 +127,18 @@ export const updateUser = catchAsync(async (req: Request, res: Response, next: N
   }
 
   try {
-    console.log('Updating user...'); // Log a message indicating the start of the operation
+
 
    const response = await axios.put(`${BASE_URL}/update/${userId}`, updatedUser);
    const updatedUserData = response.data.data; // Get the updated user data from the response
 
-   console.log('User updated successfully:', updatedUserData); // Log the successful update with updated data
 
    res.status(200).json({
      status: 'success',
      message: 'User updated successfully',
-     response
+     updatedUserData
    });
   } catch (error) {
-    console.error('Error updating user:', error); // Log the error message and details
 
     res.status(500).json({
       status: 'error',
@@ -158,15 +159,17 @@ export const deleteUser = catchAsync(async (req: Request, res: Response, next: N
   try {
     await axios.delete(`${BASE_URL}/delete/${userId}`);
 
-    res.status(204).json({
+
+    res.status(200).json({
       status: 'success',
-      message: "User deleted successfully",
-      data: null,
+      message: "User deleted successfully"
     });
   } catch (error) {
+
     res.status(500).json({
       status: 'error',
       message: "An error occurred while deleting the user. Please try again.",
     });
   }
 });
+
